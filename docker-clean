@@ -1,21 +1,23 @@
 #! /usr/bin/env bash
 
+force=""
+prefix="<none>"
+
 usage() {
     printf "Cleans dangling and <none> images generated in a build process if called with no args, "
     printf "or every image starting by the first arg if passed\n"
-    printf "Usage: docker-clean [prefix]\n"
-    printf "\tprefix: images with name starting with prefix will be deleted\n"
+    printf "Usage: docker-clean [-f] [-p <prefix>\n"
+    printf "\t-f, forces the removal\n"
+    printf "\t-p <prefix> images with name starting with prefix will be deleted\n"
 }
 
-if [ "$#" -gt 1 ]; then
-    printf "docker-clean: wrong number of args\n\n"
-    usage
-    exit
-fi
+while getopts ":fp:" opt; do
+    case $opt in
+        f) force="-f";;
+        p) prefix="$OPTARG";;
+        :) usage; exit 1;;
+    esac
+done
 
 
-case $# in
-    0) docker rmi $(docker image ls | grep "<none>" | awk '{print $3}');;
-    1) docker rmi $(docker image ls | grep "$1" | awk '{print $3}')
-esac
-
+docker rmi $force $(docker image ls | grep "$prefix" | awk '{print $3}')
