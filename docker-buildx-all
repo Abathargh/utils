@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+# Builds docker images for linux armv7, arm64 and amd64 platforms, creates a manifest and eventually pushes them to dockerhub.
+# This script checks for a Dockerfile in each directory and then recurisvely do so, creating the image with the default, but 
+# customizable format:
+# 		base_dir-dir:latest
+#
+# Originally thought for building closely tied images (e.g. images from a same compose project)
+#
+# Published under
+
+cwd=${PWD##*/}
+name=""
+only=""
+push=""
+tag="latest"
+
+usage() {
+	printf "Builds a docker image for each subdir in the current dir that contains a Dockerfile."
+	printf "The image is built for armv7, arm64 and amd64 linux archs, each image has the name of the durectory containing its Dockerfile.\n"
+    printf "Usage: docker-buildx-all [-h] [-n <name>] [-o <only_name>] [-p]\n"
+    printf "\t-h, prints the help message\n"
+    printf "\t-n <name>, the dockerhub username that will be used, in the format <name>/img:tag, mandatory option\n"
+    printf "\t-o <only_name>, only build an image for the subdir called <only_name>\n"
+    printf "\t-p, push the images to the dockerhub account specified by the -n flag, requires login ceredentials\n"
+    printf "\t-t, tags the images with this tag, default to 'latest'\n"
+}
+
+# Checks for a dockerfile in each subdir
+# $1: the subdir name
+dir_check() {
+	for subdir in $(ls $1); do
+		if [ -d "$subdir" ]; then 
+			echo "found dir: $subdir"
+			dir_cont=$(ls "$1"/"$subdir" | grep Dockerfile)
+			if [ -n "$dir_cont" ]; then
+				if [ -z "$only" ] || [ "$subdir" = "$only"]; then
+					docker buildx build \
+					-f "$1"/"$subdir"/Dockerfile --platform linux/arm/v7,linux/amd64,linux/arm64 \
+					--tag "$name"/"$cwd"-"$subdir":"$tag" \
+					"$push" "$1"/"$subdir" &
+				fi
+			fi
+			# Recurively check for folders
+			dir_check "$1"/"$subdir"
+		fi
+	done
+}
+
+while getopts ":hn:o:pt:" opt; do
+    case $opt in
+		h  ) usage; exit 0;;
+        n  ) name=$OPTARG;;
+        o  ) only=$OPTARG;;
+		p  ) push="--push";;
+		t  ) tag=$OPTARG;;
+        \? ) echo "Unknown option -$OPTARG"; usage; exit 1;;
+        :  ) echo "Missing arg for -$OPTARG"; usage; exit 1;;
+    esac
+done
+
+if [ -z "$name" ]; then
+	printf "You have to pass a name with the -n option\n\n"
+	usage 
+	exit 1
+fi
+
+
+dir_check "$PWD"
+wait

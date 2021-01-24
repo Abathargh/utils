@@ -1,4 +1,4 @@
-#! /usr/bin/env bash
+#!/usr/bin/env bash
 
 force=""
 prefix="<none>"
@@ -6,7 +6,7 @@ prefix="<none>"
 usage() {
     printf "Cleans dangling and <none> images generated in a build process if called with no args, "
     printf "or every image starting by the first arg if passed\n"
-    printf "Usage: docker-clean [-f] [-p <prefix>\n"
+    printf "Usage: docker-clean [-f] [-p <prefix>]\n"
     printf "\t-f, forces the removal\n"
     printf "\t-p <prefix> images with name starting with prefix will be deleted\n"
 }

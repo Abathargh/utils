@@ -1,0 +1,14 @@
+#!/usr/bin/env python3
+
+# hex aa:aa:aa:...:aa -> c-style arr {0xaa, 0xaa, 0xaa, .., 0xaa}
+
+import sys
+
+fp = sys.argv[1]
+arr = "{"
+
+for elem in fp.split(":"):
+    arr += f"0x{elem}, "
+
+arr = arr[:-2] + "}"
+print(arr)
