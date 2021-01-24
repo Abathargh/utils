@@ -6,8 +6,6 @@
 # 		base_dir-dir:latest
 #
 # Originally thought for building closely tied images (e.g. images from a same compose project)
-#
-# Published under
 
 cwd=${PWD##*/}
 name=""
@@ -42,7 +40,7 @@ dir_check() {
 				fi
 			fi
 			# Recurively check for folders
-			dir_check "$1"/"$subdir"
+			# dir_check "$1"/"$subdir"
 		fi
 	done
 }
