@@ -28,10 +28,10 @@ usage() {
 # $1: the subdir name
 dir_check() {
     for subdir in $(ls $1); do
-        if [ -d "$subdir" ]; then 
-            echo "found dir: $subdir"
+        if [ -d "$1"/"$subdir" ]; then 
             dir_cont=$(ls "$1"/"$subdir" | grep Dockerfile)
             if [ -n "$dir_cont" ]; then
+                echo "found dir: $subdir"
                 if [ -z "$only" ] || [ "$subdir" = "$only"]; then
                     docker buildx build \
                     -f "$1"/"$subdir"/Dockerfile --platform linux/arm/v7,linux/amd64,linux/arm64 \
@@ -40,7 +40,7 @@ dir_check() {
                 fi
             fi
             # Recursively check for folders
-            # dir_check "$1"/"$subdir"
+            dir_check "$1"/"$subdir" &
         fi
     done
 }
@@ -63,6 +63,7 @@ if [ -z "$name" ]; then
     exit 1
 fi
 
-
+trap 'kill $(jobs -p)' SIGINT
 dir_check "$PWD"
+
 wait
