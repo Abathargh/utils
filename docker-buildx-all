@@ -27,20 +27,20 @@ usage() {
 # Checks for a dockerfile in each subdir
 # $1: the subdir name
 dir_check() {
-    for subdir in $(ls $1); do
-        if [ -d "$1"/"$subdir" ]; then 
-            dir_cont=$(ls "$1"/"$subdir" | grep Dockerfile)
-            if [ -n "$dir_cont" ]; then
-                echo "found dir: $subdir"
-                if [ -z "$only" ] || [ "$subdir" = "$only"]; then
+    for subdir in "$1"/*; do
+        if [ -d "$subdir" ]; then 
+            if [ -f "$subdir/Dockerfile" ]; then
+                subdir_name=${subdir##*/}
+                echo "found dir: $subdir_name"
+                if [ -z "$only" ] || [ "$subdir_name" = "$only"]; then
                     docker buildx build \
-                    -f "$1"/"$subdir"/Dockerfile --platform linux/arm/v7,linux/amd64,linux/arm64 \
-                    --tag "$name"/"$cwd"-"$subdir":"$tag" \
-                    "$push" "$1"/"$subdir" &
+                    -f "$subdir"/Dockerfile --platform linux/arm/v7,linux/amd64,linux/arm64 \
+                    --tag "$name"/"$cwd"-"$subdir_name":"$tag" \
+                    "$push" "$subdir" &
                 fi
             fi
             # Recursively check for folders
-            dir_check "$1"/"$subdir" &
+            dir_check "$subdir" &
         fi
     done
 }
