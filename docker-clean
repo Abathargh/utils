@@ -11,9 +11,10 @@ usage() {
     printf "\t-p <prefix> images with name starting with prefix will be deleted\n"
 }
 
-while getopts ":fp:" opt; do
+while getopts ":fhp:" opt; do
     case $opt in
         f) force="-f";;
+        h) usage; exit 0;;
         p) prefix="$OPTARG";;
         :) usage; exit 1;;
     esac
